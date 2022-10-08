@@ -46,6 +46,7 @@ class Tencent extends AbstractMap
                 }
 
                 qq.maps.event.addListener(map, 'click', function(event) {
+                    console.log("event.latLng",event.latLng)
                     marker.setPosition(event.latLng);
                 });
 
@@ -56,9 +57,28 @@ class Tencent extends AbstractMap
                 });
 
                 var ap = new qq.maps.place.Autocomplete(document.getElementById("search-{$id['lat']}{$id['lng']}"));
-
                 var searchService = new qq.maps.SearchService({
-                    map : map
+                    map : map,
+                    complete:function(results){
+                        console.log("results",results)
+                        var searchword=$("#"+"search-{$id['lat']}{$id['lng']}").val()
+                        if(results.type === "CITY_LIST") {
+                            searchService.setLocation(results.detail.cities[0].cityName);
+                            searchService.search(searchword);
+                            return;
+                        }
+                       var pois = results.detail.pois;
+                       if(pois){
+                            for(var i = 0,l = pois.length;i < l; i++){
+                                if(pois[i].name==searchword){
+                                    map.setCenter(pois[i].latLng);
+                                    marker.setPosition(pois[i].latLng);
+                                    lat.val(pois[i].latLng.getLat());
+                                    lng.val(pois[i].latLng.getLng());
+                                }
+                            }
+                       }
+                    },
                 });
 
                 qq.maps.event.addListener(ap, "confirm", function(res){
